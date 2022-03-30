@@ -1,0 +1,6 @@
+[Desktop Entry]
+Categories=X-CVL-3DSLICER
+Comment=Image analysis and scientific visualisation
+Exec=${SLICER_NAME}
+Name=3D Slicer v${SLICER_VER}
+Type=Application

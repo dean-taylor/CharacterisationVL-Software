@@ -1,0 +1,45 @@
+Bootstrap: docker
+From: nvidia/cuda:11.2.2-base-ubuntu20.04
+
+%labels
+    org.label-schema.name 3dslicer
+    org.label-schema.version ${SLICER_VER}
+    org.label-schema.description medical, biomedical, and related imaging research
+    org.label-schema.url https://www.slicer.org/
+    org.label-schema.vendor Australian Characterisation Commons at Scale (ACCS)
+    org.label-schema.vcs-url https://github.com/Characterisation-Virtual-Laboratory/CharacterisationVL-Software
+    org.label-schema.usage ""
+    XDG-DESKTOP /opt/${SLICER_NAME}.desktop
+    XDG-ICON /opt/${SLICER_NAME}-linux-amd64/bin/Slicer-SplashScreen.png
+    COPYRIGHT ""
+
+%runscript
+    [ "${1}" = "--bash-completion" ] && exit 127
+    exec Slicer $@
+
+%environment
+    export LC_ALL=C
+    unset XDG_RUNTIME_DIR
+
+%files
+    ./${SLICER_NAME}-linux-amd64.tar.gz /opt/${SLICER_NAME}-linux-amd64.tar.gz
+    ./${SLICER_NAME}.desktop /opt/${SLICER_NAME}.desktop
+
+%post
+    # https://slicer.readthedocs.io/en/latest/user_guide/getting_started.html#installing-3d-slicer
+    export DEBIAN_FRONTEND=noninteractive
+    export LC_ALL=C
+    apt-get update
+    apt-get -y install \
+      gzip \
+      tar \
+      ubuntu-desktop-minimal
+    apt-get -y install libpulse-dev libnss3 libglu1-mesa
+    apt-get -y install --reinstall libxcb-xinerama0
+    rm -rf /var/lib/apt/lists/*
+    tar xzf /opt/${SLICER_NAME}-linux-amd64.tar.gz -C/opt
+    rm -f /opt/${SLICER_NAME}-linux-amd64.tar.gz
+    # PATH conf. for Slicer executables
+    SLICER_BIN="$(find /opt -name 'Slicer' -type f -executable -printf '%p' -quit)"
+    echo "export PATH=${SLICER_BIN%/*}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >>$SINGULARITY_ENVIRONMENT
+
